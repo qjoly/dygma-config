@@ -274,6 +274,9 @@ def main():
         f.write("\n".join(rd) + "\n")
 
     print(f"OK: {os.path.basename(latest)} → {len(rendered)} layer(s) rendered")
+    if os.environ.get("DYGMA_NO_COMMIT"):
+        print("Skipping commit (DYGMA_NO_COMMIT set).")
+        return
     git_commit(os.path.basename(latest))
 
 

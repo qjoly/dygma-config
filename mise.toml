@@ -15,6 +15,11 @@ done
 echo "PNGs written to preview/"
 """
 
-[tasks.remote]
-description = "Create the GitHub repo and push (needs gh)"
-run = "gh repo create dygma-config --private --source=. --remote=origin --push"
+[tasks.diff]
+description = "Regenerate from the latest backup and show what differs from the repo (no commit)"
+run = """
+DYGMA_NO_COMMIT=1 python3 sync.py
+echo "---"
+git --no-pager diff --stat
+git --no-pager diff
+"""
