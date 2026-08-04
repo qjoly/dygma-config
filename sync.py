@@ -127,24 +127,31 @@ def finger_pos(slot):
     return (x, row + COL_Y[6 - rc], 0.0)
 
 
+THUMB_TILT = 18                  # whole-cluster inward tilt (degrees)
+THUMB_LX = 2.7                   # left cluster anchor x
+THUMB_RX = HALF_W + MIDGAP + 3.85  # right cluster anchor x
+THUMB_Y = 4.55                   # cluster anchor y
+
+
 def thumb_pos(slot):
-    """(x, y, angle) for a thumb-cluster slot, fanned like the real Defy."""
+    """(x, y, angle) for a thumb-cluster slot: two arcs of 4, fanned like the Defy."""
     row, col = divmod(slot, 16)
     left = col < 8
     idx = col if left else col - 8               # 0..7 within the thumb
-    ring, k = divmod(idx, 4)                     # 2 arcs of 4 keys
-    spread = (k - 1.5) * 22                       # -33°..+33°
-    radius = 3.0 + ring * 1.15
-    # pivot sits just below the inner columns of each half
+    ring, k = divmod(idx, 4)                     # near arc (0), far arc (1)
+    lx = k * 1.06                                # step across the arc
+    ly = ring * 1.12 + (k - 1.5) ** 2 * 0.10     # shallow smile + second row
+    fan = (k - 1.5) * 15                          # per-key fan angle
     if left:
-        pivot_x, pivot_y = COL_X[6] - 0.4, 4.7
-        ang = math.radians(spread + 22)          # fan opens toward the centre
-        return (pivot_x + radius * math.sin(ang),
-                pivot_y + radius * math.cos(ang) - 3.0, spread + 22)
-    pivot_x, pivot_y = HALF_W + MIDGAP + 0.4, 4.7
-    ang = math.radians(spread + 22)
-    return (pivot_x - radius * math.sin(ang),
-            pivot_y + radius * math.cos(ang) - 3.0, -(spread + 22))
+        th = math.radians(THUMB_TILT)
+        ax, ang = THUMB_LX, fan + THUMB_TILT
+    else:
+        lx, fan = -lx, -fan                       # mirror the right cluster
+        th = math.radians(-THUMB_TILT)
+        ax, ang = THUMB_RX, fan - THUMB_TILT
+    x = ax + lx * math.cos(th) - ly * math.sin(th)
+    y = THUMB_Y + lx * math.sin(th) + ly * math.cos(th)
+    return (x, y, ang)
 
 
 def slot_pos(slot):
