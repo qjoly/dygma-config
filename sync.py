@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Sauvegarde le dernier backup Bazecor du Dygma Defy dans ce repo :
-   copie le JSON brut, le transcrit en YAML lisible, rend un SVG par layer,
-   régénère le README puis commit (push si un remote existe)."""
+"""Save the latest Bazecor backup of the Dygma Defy into this repo: copy the
+raw JSON, transcribe it to readable YAML, render one Defy-shaped SVG per layer,
+regenerate the README, then commit (push if a remote exists)."""
 
 import glob
 import json
+import math
 import os
 import re
 import subprocess
@@ -16,8 +17,8 @@ BACKUP_GLOB = os.environ.get(
 )
 REPO = os.path.dirname(os.path.abspath(__file__))
 
-# ── Table des keycodes (extraite de Bazecor) ────────────────────────────────
-# HID standard 4-231. On garde une étiquette courte pour le SVG.
+# ── Keycode table (extracted from Bazecor) ──────────────────────────────────
+# Standard HID 4-231, with a short label for the SVG.
 HID = {
     40: "Enter", 41: "Esc", 42: "Bksp", 43: "Tab", 44: "Space", 45: "-",
     46: "=", 47: "[", 48: "]", 49: "\\", 50: "#", 51: ";", 52: "'",
@@ -28,14 +29,14 @@ HID = {
     99: "KP.", 224: "LCtrl", 225: "LShift", 226: "LAlt", 227: "LGui",
     228: "RCtrl", 229: "RShift", 230: "RAlt", 231: "RGui",
 }
-for c in range(4, 30):           # A-Z
+for c in range(4, 30):                   # A-Z
     HID[c] = chr(ord("A") + c - 4)
-for i, c in enumerate(range(30, 39)):  # 1-9
+for i, c in enumerate(range(30, 39)):    # 1-9
     HID[c] = str(i + 1)
 HID[39] = "0"
-for c in range(58, 70):          # F1-F12
+for c in range(58, 70):                  # F1-F12
     HID[c] = f"F{c - 57}"
-for i, c in enumerate(range(89, 98)):  # KP1-9
+for i, c in enumerate(range(89, 98)):    # KP1-9
     HID[c] = f"KP{i + 1}"
 HID[98] = "KP0"
 
@@ -59,7 +60,7 @@ WIRELESS = {54108: "BT Status", 54109: "BT Pair", 54111: "BT Status", 54112: "BT
 
 
 def decode(code):
-    """Retourne (label court, description longue) pour un keycode brut."""
+    """Return (short label, long description) for a raw keycode."""
     if code == 0:
         return ("", "____ (transparent)")
     if code in (65535, 65534):
@@ -83,23 +84,20 @@ def decode(code):
     if 17492 <= code <= 17501:
         n = code - 17491
         return (f"LL{n}", f"Layer Lock {n}")
-    # dual-use "tap key / hold modifier"
-    for base, name in DUAL_MOD.items():
+    for base, name in DUAL_MOD.items():          # tap key / hold modifier
         if base <= code < base + 256:
             k = HID.get(code - base, "?")
             return (f"{k}/{name}", f"{k} tap / {name} hold")
-    # dual-use "tap key / hold layer"
-    if 51218 <= code < 51218 + 256 * 8:
+    if 51218 <= code < 51218 + 256 * 8:          # tap key / hold layer
         n = (code - 51218) // 256 + 1
         k = HID.get((code - 51218) % 256, "?")
         return (f"{k}/L{n}", f"{k} tap / Layer {n} hold")
-    # modifier(s) + key (bits 8-12)
-    if 256 <= code < 8192:
+    if 256 <= code < 8192:                        # modifier(s) + key (bits 8-12)
         base = code & 0xFF
         mods = [name for bit, name in MOD_BIT if code & bit]
         if mods and base in HID:
             pre = "+".join(mods)
-            return (f"{pre}+{HID[base]}", f"{'+'.join(mods)} + {HID[base]}")
+            return (f"{pre}+{HID[base]}", f"{pre} + {HID[base]}")
     if 53853 <= code <= 53979:
         return (f"M{code - 53852}", f"Macro {code - 53852}")
     if 53980 <= code <= 54107:
@@ -107,86 +105,102 @@ def decode(code):
     return (f"#{code}", f"unknown ({code})")
 
 
-# ── Géométrie physique du Defy (matrice 5×16, 8|8, 70 touches) ───────────────
+# ── Defy physical geometry (5×16 matrix, split 8|8, 70 keys) ─────────────────
 GAPS = {7, 8, 23, 24, 39, 40, 54, 55, 56, 57}
-# léger stagger ergonomique par colonne (index de colonne 0..6 par demi)
-STAGGER = [0.30, 0.22, 0.06, 0.0, 0.06, 0.16, 0.32]
-MIDGAP = 2.2   # espace entre les deux moitiés (en unités de touche)
+
+# Columnar stagger (ergonomic bowl): per finger column, from outer pinky (0)
+# to inner index (6). X spacing puts the outer column on its own island.
+COL_X = [0.0, 1.35, 2.40, 3.45, 4.50, 5.55, 6.55]
+COL_Y = [0.62, 0.30, 0.06, -0.14, 0.02, 0.30, 0.60]
+HALF_W = COL_X[-1] + 1.0          # width of one half in key units
+MIDGAP = 1.6                      # gap between the two halves
+
+
+def finger_pos(slot):
+    """(x, y, angle) for a main-block slot (rows 0-3), left or right half."""
+    row, col = divmod(slot, 16)
+    if col < 8:                                  # left half, columns 0..6
+        c = col
+        return (COL_X[c], row + COL_Y[c], 0.0)
+    rc = col - 9                                 # right half real column 0..6
+    x = HALF_W + MIDGAP + (COL_X[-1] - COL_X[6 - rc])
+    return (x, row + COL_Y[6 - rc], 0.0)
+
+
+def thumb_pos(slot):
+    """(x, y, angle) for a thumb-cluster slot, fanned like the real Defy."""
+    row, col = divmod(slot, 16)
+    left = col < 8
+    idx = col if left else col - 8               # 0..7 within the thumb
+    ring, k = divmod(idx, 4)                     # 2 arcs of 4 keys
+    spread = (k - 1.5) * 22                       # -33°..+33°
+    radius = 3.0 + ring * 1.15
+    # pivot sits just below the inner columns of each half
+    if left:
+        pivot_x, pivot_y = COL_X[6] - 0.4, 4.7
+        ang = math.radians(spread + 22)          # fan opens toward the centre
+        return (pivot_x + radius * math.sin(ang),
+                pivot_y + radius * math.cos(ang) - 3.0, spread + 22)
+    pivot_x, pivot_y = HALF_W + MIDGAP + 0.4, 4.7
+    ang = math.radians(spread + 22)
+    return (pivot_x - radius * math.sin(ang),
+            pivot_y + radius * math.cos(ang) - 3.0, -(spread + 22))
 
 
 def slot_pos(slot):
-    """(x, y) en unités de touche pour un slot 0-79, ou None si gap/thumb géré à part."""
-    row, col = divmod(slot, 16)
-    left = col < 8
-    if row < 4:  # rangées principales
-        if left:
-            c = col                      # 0..7 (7 = gap)
-            x, yoff = c, STAGGER[c] if c < 7 else 0
-        else:
-            c = col - 8                  # 0..7 (0 = gap côté droit)
-            rc = c - 1                   # colonne réelle droite 0..6
-            x = 8 + MIDGAP + rc
-            yoff = STAGGER[6 - rc]
-        return (x, row + yoff)
-    # rangée pouce (row 4) : 8 touches par côté en cluster 2×4, incliné vers le centre
-    idx = col if left else col - 8       # 0..7
-    tr, tc = divmod(idx, 4)              # 2 rangées de 4
-    if left:
-        x = 3.4 + tc + tr * 0.5
-    else:
-        x = 8 + MIDGAP + 0.6 - tc + tr * 0.5 + 3
-    y = 4.5 + tr * 1.0
-    return (x, y)
+    return thumb_pos(slot) if slot // 16 == 4 else finger_pos(slot)
 
 
 def render_svg(layer_codes, name, idx):
-    U = 56           # taille touche px
-    PAD = 24
-    positions = {}
-    for slot, code in enumerate(layer_codes):
-        if slot in GAPS:
-            continue
-        positions[slot] = (slot_pos(slot), code)
-    xs = [p[0] for (p, _) in positions.values()]
-    ys = [p[1] for (p, _) in positions.values()]
-    w = int((max(xs) - min(xs) + 1) * U + 2 * PAD)
-    h = int((max(ys) - min(ys) + 1) * U + 2 * PAD + 34)
-    minx, miny = min(xs), min(ys)
+    U = 58                                        # key size px
+    PAD = 26
+    positions = {s: (slot_pos(s), c) for s, c in enumerate(layer_codes)
+                 if s not in GAPS}
+    # bounding box accounting for rotation
+    pts = []
+    for (x, y, _), _ in positions.values():
+        pts += [(x, y), (x + 0.9, y + 0.9)]
+    minx = min(p[0] for p in pts)
+    miny = min(p[1] for p in pts)
+    w = int((max(p[0] for p in pts) - minx) * U + 2 * PAD)
+    h = int((max(p[1] for p in pts) - miny) * U + 2 * PAD + 40)
     out = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" '
         f'viewBox="0 0 {w} {h}" font-family="ui-monospace,Menlo,monospace">',
-        f'<rect width="{w}" height="{h}" rx="14" fill="#1b1d23"/>',
-        f'<text x="{PAD}" y="26" fill="#e6e6e6" font-size="18" '
+        f'<rect width="{w}" height="{h}" rx="16" fill="#171a20"/>',
+        f'<text x="{PAD}" y="30" fill="#e8ecf4" font-size="19" '
         f'font-weight="700">Layer {idx} — {esc(name)}</text>',
     ]
-    for slot, ((x, y), code) in sorted(positions.items()):
+    ks = U - 8
+    for slot, ((x, y, angle), code) in sorted(positions.items()):
         px = PAD + (x - minx) * U
-        py = PAD + 34 + (y - miny) * U
+        py = PAD + 40 + (y - miny) * U
         short, _ = decode(code)
-        transparent = code in (0, 65535, 65534)
-        fill = "#23262e" if transparent else "#2d3340"
-        stroke = "#33373f" if transparent else "#4a5265"
+        off = code in (0, 65535, 65534)
+        fill = "#20242d" if off else "#2c333f"
+        stroke = "#2b2f38" if off else "#4b5468"
+        cx, cy = px + ks / 2, py + ks / 2
+        rot = f' transform="rotate({angle:.1f} {cx:.1f} {cy:.1f})"' if angle else ""
         out.append(
-            f'<rect x="{px:.1f}" y="{py:.1f}" width="{U-6}" height="{U-6}" '
-            f'rx="7" fill="{fill}" stroke="{stroke}" stroke-width="1.5"/>'
+            f'<rect x="{px:.1f}" y="{py:.1f}" width="{ks}" height="{ks}" '
+            f'rx="8" fill="{fill}" stroke="{stroke}" stroke-width="1.5"{rot}/>'
         )
         if short:
             fs = 15 if len(short) <= 3 else (12 if len(short) <= 6 else 9)
             out.append(
-                f'<text x="{px + (U-6)/2:.1f}" y="{py + (U-6)/2 + fs/3:.1f}" '
-                f'text-anchor="middle" fill="#dfe4ee" font-size="{fs}">'
-                f'{esc(short)}</text>'
+                f'<text x="{cx:.1f}" y="{cy + fs / 3:.1f}" text-anchor="middle" '
+                f'fill="#e2e7f0" font-size="{fs}"{rot}>{esc(short)}</text>'
             )
     out.append("</svg>")
     return "\n".join(out)
 
 
 def esc(s):
-    return (s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
 def yaml_scalar(s):
-    """JSON est du YAML valide pour un scalaire → quoting sûr."""
+    """JSON is valid YAML for a scalar → safe quoting."""
     return json.dumps(s, ensure_ascii=False)
 
 
@@ -197,8 +211,8 @@ def used(layer_codes):
 def main():
     files = glob.glob(BACKUP_GLOB)
     if not files:
-        sys.exit(f"Aucun backup trouvé via {BACKUP_GLOB}")
-    latest = max(files, key=lambda f: os.path.basename(f))  # nom = horodatage
+        sys.exit(f"No backup found via {BACKUP_GLOB}")
+    latest = max(files, key=lambda f: os.path.basename(f))  # name = timestamp
     data = json.load(open(latest))
     codes = next(
         item["data"].split()
@@ -208,14 +222,14 @@ def main():
     layers = [codes[i * 80:(i + 1) * 80] for i in range(10)]
     names = {l["id"]: l["name"] for l in data.get("neuron", {}).get("layers", [])}
 
-    # 1. JSON brut (source de vérité pour re-flasher)
+    # 1. Raw JSON (re-flashable source of truth)
     with open(os.path.join(REPO, "defy.json"), "w") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
-    # 2. YAML lisible
-    ydir = ["# Généré par sync.py — ne pas éditer à la main.",
+    # 2. Readable YAML
+    ydoc = ["# Generated by sync.py — do not edit by hand.",
             f"source: {yaml_scalar(os.path.basename(latest))}",
-            f"neuronID: {yaml_scalar(data.get('neuronID',''))}",
+            f"neuronID: {yaml_scalar(data.get('neuronID', ''))}",
             "layers:"]
     rendered = []
     os.makedirs(os.path.join(REPO, "layouts"), exist_ok=True)
@@ -223,37 +237,36 @@ def main():
         if not used(lc):
             continue
         nm = names.get(idx, f"layer{idx}")
-        ydir.append(f"  - index: {idx}")
-        ydir.append(f"    name: {yaml_scalar(nm)}")
-        ydir.append("    keys:")
+        ydoc += [f"  - index: {idx}",
+                 f"    name: {yaml_scalar(nm)}",
+                 "    keys:"]
         for slot, code in enumerate(lc):
             if slot in GAPS:
                 continue
             _, desc = decode(code)
-            ydir.append(f"      - {{slot: {slot}, code: {code}, key: {yaml_scalar(desc)}}}")
-        svg = render_svg(lc, nm, idx)
+            ydoc.append(f"      - {{slot: {slot}, code: {code}, key: {yaml_scalar(desc)}}}")
         slug = re.sub(r"[^a-z0-9]+", "-", nm.lower()).strip("-") or f"layer{idx}"
         path = f"layouts/layer-{idx}-{slug}.svg"
         with open(os.path.join(REPO, path), "w") as f:
-            f.write(svg)
+            f.write(render_svg(lc, nm, idx))
         rendered.append((idx, nm, path))
     with open(os.path.join(REPO, "layers.yaml"), "w") as f:
-        f.write("\n".join(ydir) + "\n")
+        f.write("\n".join(ydoc) + "\n")
 
     # 3. README
     rd = ["# Dygma Defy — config", "",
-          f"Dernier backup : `{os.path.basename(latest)}`  ",
-          f"neuronID : `{data.get('neuronID','')}`", "",
-          "Généré depuis les backups Bazecor par [`sync.py`](./sync.py).",
-          "Source de vérité re-flashable : [`defy.json`](./defy.json) · "
-          "transcription : [`layers.yaml`](./layers.yaml).", "",
+          f"Latest backup: `{os.path.basename(latest)}`  ",
+          f"neuronID: `{data.get('neuronID', '')}`", "",
+          "Generated from Bazecor backups by [`sync.py`](./sync.py).",
+          "Re-flashable source of truth: [`defy.json`](./defy.json) · "
+          "transcription: [`layers.yaml`](./layers.yaml).", "",
           "## Layers", ""]
     for idx, nm, path in rendered:
         rd += [f"### Layer {idx} — {nm}", "", f"![layer {idx}]({path})", ""]
     with open(os.path.join(REPO, "README.md"), "w") as f:
         f.write("\n".join(rd) + "\n")
 
-    print(f"OK: {os.path.basename(latest)} → {len(rendered)} layer(s) rendus")
+    print(f"OK: {os.path.basename(latest)} → {len(rendered)} layer(s) rendered")
     git_commit(os.path.basename(latest))
 
 
@@ -267,15 +280,15 @@ def git_commit(tag):
         git("init", "-q")
     git("add", "-A")
     if not git("diff", "--cached", "--quiet").returncode:
-        print("Rien à committer.")
+        print("Nothing to commit.")
         return
     git("commit", "-q", "-m", f"defy: sync layout {tag}")
-    print("Commit créé.")
+    print("Commit created.")
     if git("remote").stdout.strip():
         r = git("push")
-        print("Push OK." if r.returncode == 0 else f"Push échoué:\n{r.stderr}")
+        print("Push OK." if r.returncode == 0 else f"Push failed:\n{r.stderr}")
     else:
-        print("Pas de remote — ajoute-le puis push :\n"
+        print("No remote — add one then push:\n"
               "  git -C %s remote add origin <url> && git -C %s push -u origin HEAD"
               % (REPO, REPO))
 

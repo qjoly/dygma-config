@@ -1,10 +1,10 @@
 # Dygma Defy — config
 
-Dernier backup : `20260804160109-Defy.json`  
-neuronID : `200cb8077ae9b7c4`
+Latest backup: `20260804160109-Defy.json`  
+neuronID: `200cb8077ae9b7c4`
 
-Généré depuis les backups Bazecor par [`sync.py`](./sync.py).
-Source de vérité re-flashable : [`defy.json`](./defy.json) · transcription : [`layers.yaml`](./layers.yaml).
+Generated from Bazecor backups by [`sync.py`](./sync.py).
+Re-flashable source of truth: [`defy.json`](./defy.json) · transcription: [`layers.yaml`](./layers.yaml).
 
 ## Layers
 
