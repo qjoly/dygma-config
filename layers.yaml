@@ -168,9 +168,9 @@ layers:
       - {slot: 16, code: 0, key: "____ (transparent)"}
       - {slot: 17, code: 0, key: "____ (transparent)"}
       - {slot: 18, code: 0, key: "____ (transparent)"}
-      - {slot: 19, code: 22710, key: "Media Next"}
-      - {slot: 20, code: 22709, key: "Media Mute"}
-      - {slot: 21, code: 23785, key: "Media Play"}
+      - {slot: 19, code: 22710, key: "Media Prev"}
+      - {slot: 20, code: 22709, key: "Media Next"}
+      - {slot: 21, code: 23785, key: "Media Vol+"}
       - {slot: 22, code: 0, key: "____ (transparent)"}
       - {slot: 25, code: 0, key: "____ (transparent)"}
       - {slot: 26, code: 0, key: "____ (transparent)"}
@@ -181,10 +181,10 @@ layers:
       - {slot: 31, code: 0, key: "____ (transparent)"}
       - {slot: 32, code: 0, key: "____ (transparent)"}
       - {slot: 33, code: 0, key: "____ (transparent)"}
-      - {slot: 34, code: 22713, key: "Media Calc"}
-      - {slot: 35, code: 22711, key: "Media Prev"}
-      - {slot: 36, code: 22733, key: "Media Stop"}
-      - {slot: 37, code: 23786, key: "Media Vol+"}
+      - {slot: 34, code: 22713, key: "Media Shuffle"}
+      - {slot: 35, code: 22711, key: "Media Stop"}
+      - {slot: 36, code: 22733, key: "Media Play"}
+      - {slot: 37, code: 23786, key: "Media Vol-"}
       - {slot: 38, code: 0, key: "____ (transparent)"}
       - {slot: 41, code: 0, key: "____ (transparent)"}
       - {slot: 42, code: 53859, key: "Macro 7"}
@@ -198,7 +198,7 @@ layers:
       - {slot: 50, code: 53855, key: "Macro 3"}
       - {slot: 51, code: 53854, key: "Macro 2"}
       - {slot: 52, code: 53853, key: "Macro 1"}
-      - {slot: 53, code: 19682, key: "unknown (19682)"}
+      - {slot: 53, code: 19682, key: "Media Mute"}
       - {slot: 58, code: 0, key: "____ (transparent)"}
       - {slot: 59, code: 0, key: "____ (transparent)"}
       - {slot: 60, code: 0, key: "____ (transparent)"}

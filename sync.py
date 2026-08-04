@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """Save the latest Bazecor backup of the Dygma Defy into this repo: copy the
-raw JSON, transcribe it to readable YAML, render one Defy-shaped SVG per layer,
-regenerate the README, then commit (push if a remote exists)."""
+raw JSON, transcribe it to readable YAML, render one Defy-shaped SVG per layer
+and regenerate the README. Committing is left to the caller."""
 
 import glob
 import json
 import math
 import os
 import re
-import subprocess
 import sys
 
 BACKUP_GLOB = os.environ.get(
@@ -46,10 +45,11 @@ ONESHOT_MOD = {
     49153: "OSCtrl", 49154: "OSShift", 49155: "OSAlt", 49156: "OSGui",
     49157: "OSCtrl", 49158: "OSShift", 49159: "OSAltGr", 49160: "OSGui",
 }
+# Bazecor stores consumer keys as <base>+<HID usage>; the low byte is the usage.
 MEDIA = {
-    22709: "Mute", 22710: "Next", 22711: "Prev", 22712: "Vol-", 22713: "Calc",
-    22733: "Stop", 23663: "Camera", 23664: "Bright+", 23665: "Bright-",
-    23785: "Play", 23786: "Vol+",
+    22709: "Next", 22710: "Prev", 22711: "Stop", 22712: "Eject", 22713: "Shuffle",
+    22733: "Play", 19682: "Mute", 23663: "Camera", 23664: "Bright+", 23665: "Bright-",
+    23785: "Vol+", 23786: "Vol-",
 }
 MOUSE = {
     20481: "M↑", 20482: "M↓", 20484: "M←", 20488: "M→", 20497: "Wh↑",
@@ -274,33 +274,6 @@ def main():
         f.write("\n".join(rd) + "\n")
 
     print(f"OK: {os.path.basename(latest)} → {len(rendered)} layer(s) rendered")
-    if os.environ.get("DYGMA_NO_COMMIT"):
-        print("Skipping commit (DYGMA_NO_COMMIT set).")
-        return
-    git_commit(os.path.basename(latest))
-
-
-def git(*args):
-    return subprocess.run(["git", "-C", REPO, *args],
-                          capture_output=True, text=True)
-
-
-def git_commit(tag):
-    if not os.path.isdir(os.path.join(REPO, ".git")):
-        git("init", "-q")
-    git("add", "-A")
-    if not git("diff", "--cached", "--quiet").returncode:
-        print("Nothing to commit.")
-        return
-    git("commit", "-q", "-m", f"defy: sync layout {tag}")
-    print("Commit created.")
-    if git("remote").stdout.strip():
-        r = git("push")
-        print("Push OK." if r.returncode == 0 else f"Push failed:\n{r.stderr}")
-    else:
-        print("No remote — add one then push:\n"
-              "  git -C %s remote add origin <url> && git -C %s push -u origin HEAD"
-              % (REPO, REPO))
 
 
 if __name__ == "__main__":

@@ -2,8 +2,12 @@
 python = "3"
 
 [tasks.sync]
-description = "Import the latest Bazecor backup: JSON + YAML + SVG, then commit"
+description = "Import the latest Bazecor backup into JSON + YAML + SVG (no commit)"
 run = "python3 sync.py"
+
+[tasks.restore]
+description = "Rebuild a flashable JSON from layers.yaml (patched onto defy.json)"
+run = "python3 restore.py"
 
 [tasks.preview]
 description = "Render every layer SVG to PNG under preview/ (needs rsvg-convert)"
@@ -16,9 +20,9 @@ echo "PNGs written to preview/"
 """
 
 [tasks.diff]
-description = "Regenerate from the latest backup and show what differs from the repo (no commit)"
+description = "Regenerate from the latest backup and show what differs from the repo"
 run = """
-DYGMA_NO_COMMIT=1 python3 sync.py
+python3 sync.py
 echo "---"
 git --no-pager diff --stat
 git --no-pager diff

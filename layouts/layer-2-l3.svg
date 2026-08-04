@@ -32,11 +32,11 @@
 <rect x="104.3" y="149.5" width="50" height="50" rx="8" fill="#20242d" stroke="#2b2f38" stroke-width="1.5"/>
 <rect x="165.2" y="135.6" width="50" height="50" rx="8" fill="#20242d" stroke="#2b2f38" stroke-width="1.5"/>
 <rect x="226.1" y="124.0" width="50" height="50" rx="8" fill="#2c333f" stroke="#4b5468" stroke-width="1.5"/>
-<text x="251.1" y="153.0" text-anchor="middle" fill="#e2e7f0" font-size="12">Next</text>
+<text x="251.1" y="153.0" text-anchor="middle" fill="#e2e7f0" font-size="12">Prev</text>
 <rect x="287.0" y="133.3" width="50" height="50" rx="8" fill="#2c333f" stroke="#4b5468" stroke-width="1.5"/>
-<text x="312.0" y="162.3" text-anchor="middle" fill="#e2e7f0" font-size="12">Mute</text>
+<text x="312.0" y="162.3" text-anchor="middle" fill="#e2e7f0" font-size="12">Next</text>
 <rect x="347.9" y="149.5" width="50" height="50" rx="8" fill="#2c333f" stroke="#4b5468" stroke-width="1.5"/>
-<text x="372.9" y="178.5" text-anchor="middle" fill="#e2e7f0" font-size="12">Play</text>
+<text x="372.9" y="178.5" text-anchor="middle" fill="#e2e7f0" font-size="12">Vol+</text>
 <rect x="405.9" y="166.9" width="50" height="50" rx="8" fill="#20242d" stroke="#2b2f38" stroke-width="1.5"/>
 <rect x="556.7" y="166.9" width="50" height="50" rx="8" fill="#20242d" stroke="#2b2f38" stroke-width="1.5"/>
 <rect x="614.7" y="149.5" width="50" height="50" rx="8" fill="#20242d" stroke="#2b2f38" stroke-width="1.5"/>
@@ -49,13 +49,13 @@
 <rect x="26.0" y="226.1" width="50" height="50" rx="8" fill="#20242d" stroke="#2b2f38" stroke-width="1.5"/>
 <rect x="104.3" y="207.5" width="50" height="50" rx="8" fill="#20242d" stroke="#2b2f38" stroke-width="1.5"/>
 <rect x="165.2" y="193.6" width="50" height="50" rx="8" fill="#2c333f" stroke="#4b5468" stroke-width="1.5"/>
-<text x="190.2" y="222.6" text-anchor="middle" fill="#e2e7f0" font-size="12">Calc</text>
+<text x="190.2" y="221.6" text-anchor="middle" fill="#e2e7f0" font-size="9">Shuffle</text>
 <rect x="226.1" y="182.0" width="50" height="50" rx="8" fill="#2c333f" stroke="#4b5468" stroke-width="1.5"/>
-<text x="251.1" y="211.0" text-anchor="middle" fill="#e2e7f0" font-size="12">Prev</text>
+<text x="251.1" y="211.0" text-anchor="middle" fill="#e2e7f0" font-size="12">Stop</text>
 <rect x="287.0" y="191.3" width="50" height="50" rx="8" fill="#2c333f" stroke="#4b5468" stroke-width="1.5"/>
-<text x="312.0" y="220.3" text-anchor="middle" fill="#e2e7f0" font-size="12">Stop</text>
+<text x="312.0" y="220.3" text-anchor="middle" fill="#e2e7f0" font-size="12">Play</text>
 <rect x="347.9" y="207.5" width="50" height="50" rx="8" fill="#2c333f" stroke="#4b5468" stroke-width="1.5"/>
-<text x="372.9" y="236.5" text-anchor="middle" fill="#e2e7f0" font-size="12">Vol+</text>
+<text x="372.9" y="236.5" text-anchor="middle" fill="#e2e7f0" font-size="12">Vol-</text>
 <rect x="405.9" y="224.9" width="50" height="50" rx="8" fill="#20242d" stroke="#2b2f38" stroke-width="1.5"/>
 <rect x="556.7" y="224.9" width="50" height="50" rx="8" fill="#20242d" stroke="#2b2f38" stroke-width="1.5"/>
 <rect x="614.7" y="207.5" width="50" height="50" rx="8" fill="#2c333f" stroke="#4b5468" stroke-width="1.5"/>
@@ -78,7 +78,7 @@
 <rect x="287.0" y="249.3" width="50" height="50" rx="8" fill="#2c333f" stroke="#4b5468" stroke-width="1.5"/>
 <text x="312.0" y="279.3" text-anchor="middle" fill="#e2e7f0" font-size="15">M1</text>
 <rect x="347.9" y="265.5" width="50" height="50" rx="8" fill="#2c333f" stroke="#4b5468" stroke-width="1.5"/>
-<text x="372.9" y="294.5" text-anchor="middle" fill="#e2e7f0" font-size="12">#19682</text>
+<text x="372.9" y="294.5" text-anchor="middle" fill="#e2e7f0" font-size="12">Mute</text>
 <rect x="614.7" y="265.5" width="50" height="50" rx="8" fill="#20242d" stroke="#2b2f38" stroke-width="1.5"/>
 <rect x="675.6" y="249.3" width="50" height="50" rx="8" fill="#20242d" stroke="#2b2f38" stroke-width="1.5"/>
 <rect x="736.5" y="240.0" width="50" height="50" rx="8" fill="#20242d" stroke="#2b2f38" stroke-width="1.5"/>
