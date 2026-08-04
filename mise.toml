@@ -1,0 +1,20 @@
+[tools]
+python = "3"
+
+[tasks.sync]
+description = "Import the latest Bazecor backup: JSON + YAML + SVG, then commit"
+run = "python3 sync.py"
+
+[tasks.preview]
+description = "Render every layer SVG to PNG under preview/ (needs rsvg-convert)"
+run = """
+mkdir -p preview
+for f in layouts/*.svg; do
+  rsvg-convert -w 1300 "$f" -o "preview/$(basename "${f%.svg}").png"
+done
+echo "PNGs written to preview/"
+"""
+
+[tasks.remote]
+description = "Create the GitHub repo and push (needs gh)"
+run = "gh repo create dygma-config --private --source=. --remote=origin --push"
