@@ -1,26 +1,40 @@
 # Dygma Defy — config
 
-Latest backup: `20260804160109-Defy.json`  
+Latest backup: `20260805103723-Defy.json`  
 neuronID: `200cb8077ae9b7c4`
 
-Generated from Bazecor backups by [`sync.py`](./sync.py).
-Re-flashable source of truth: [`defy.json`](./defy.json) · transcription: [`layers.yaml`](./layers.yaml).
+Généré depuis les backups Bazecor par [`sync.py`](./sync.py) ; sens inverse (YAML → JSON flashable) via [`restore.py`](./restore.py) (`mise run restore`).
+Source ré-flashable : [`defy.json`](./defy.json) · transcription lisible : [`layers.yaml`](./layers.yaml).
 
 ## Layers
 
 ### Layer 0 — main
 
+QWERTY de base. Dual-function sur les pouces (Bksp/Ctrl, Enter/Alt, Enter/Ctrl). Slot 38 = `Layer Lock 4` → bascule permanente vers ErgoL.
+
 ![layer 0](layouts/layer-0-main.svg)
 
-### Layer 1 — L2
+### Layer 1 — mouse-zqsd
 
-![layer 1](layouts/layer-1-l2.svg)
+Souris (déplacements + clics), navigation (flèches, PgUp/PgDn) et pavé numérique.
+
+![layer 1](layouts/layer-1-mouse-zqsd.svg)
 
 ### Layer 2 — L3
 
+Média (Play/Stop/Prev/Next/Vol±/Mute/Shuffle), F1-F12 et macros (préfixes tmux `Ctrl+B`).
+
 ![layer 2](layouts/layer-2-l3.svg)
 
-### Layer 3 — L4
+### Layer 3 — ErgoL
 
-![layer 3](layouts/layer-3-l4.svg)
+Layout ErgoL (type Colemak FR) posé sur un OS **US** : lettres ErgoL + le « chrome » de main (chiffres, Suppr, Shift, pouces). Slot 38 = `Layer Lock 1` → retour main. Maintenir `Layer Shift 5` (pouce) → couche Accents.
+
+![layer 3](layouts/layer-3-ergol.svg)
+
+### Layer 4 — Accents
+
+Accents FR via **macros** (touches mortes US-International : `'`+e=é, `` ` ``+e=è, `^`+e=ê…) + `€` (AltGr+5). Accès en maintenant le pouce depuis ErgoL.
+
+![layer 4](layouts/layer-4-accents.svg)
 

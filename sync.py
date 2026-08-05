@@ -58,6 +58,24 @@ MOUSE = {
 }
 WIRELESS = {54108: "BT Status", 54109: "BT Pair", 54111: "BT Status", 54112: "BT"}
 
+# Short description per layer, keyed by its Bazecor name (kept in the README).
+LAYER_DOC = {
+    "main": "QWERTY de base. Dual-function sur les pouces "
+            "(Bksp/Ctrl, Enter/Alt, Enter/Ctrl). Slot 38 = `Layer Lock 4` → "
+            "bascule permanente vers ErgoL.",
+    "mouse-zqsd": "Souris (déplacements + clics), navigation (flèches, "
+                  "PgUp/PgDn) et pavé numérique.",
+    "L3": "Média (Play/Stop/Prev/Next/Vol±/Mute/Shuffle), F1-F12 et macros "
+          "(préfixes tmux `Ctrl+B`).",
+    "ErgoL": "Layout ErgoL (type Colemak FR) posé sur un OS **US** : lettres "
+             "ErgoL + le « chrome » de main (chiffres, Suppr, Shift, pouces). "
+             "Slot 38 = `Layer Lock 1` → retour main. Maintenir `Layer Shift 5` "
+             "(pouce) → couche Accents.",
+    "Accents": "Accents FR via **macros** (touches mortes US-International : "
+               "`'`+e=é, `` ` ``+e=è, `^`+e=ê…) + `€` (AltGr+5). Accès en "
+               "maintenant le pouce depuis ErgoL.",
+}
+
 
 def decode(code):
     """Return (short label, long description) for a raw keycode."""
@@ -264,12 +282,17 @@ def main():
     rd = ["# Dygma Defy — config", "",
           f"Latest backup: `{os.path.basename(latest)}`  ",
           f"neuronID: `{data.get('neuronID', '')}`", "",
-          "Generated from Bazecor backups by [`sync.py`](./sync.py).",
-          "Re-flashable source of truth: [`defy.json`](./defy.json) · "
-          "transcription: [`layers.yaml`](./layers.yaml).", "",
+          "Généré depuis les backups Bazecor par [`sync.py`](./sync.py) ; "
+          "sens inverse (YAML → JSON flashable) via [`restore.py`](./restore.py) "
+          "(`mise run restore`).",
+          "Source ré-flashable : [`defy.json`](./defy.json) · "
+          "transcription lisible : [`layers.yaml`](./layers.yaml).", "",
           "## Layers", ""]
     for idx, nm, path in rendered:
-        rd += [f"### Layer {idx} — {nm}", "", f"![layer {idx}]({path})", ""]
+        rd += [f"### Layer {idx} — {nm}", ""]
+        if nm in LAYER_DOC:
+            rd += [LAYER_DOC[nm], ""]
+        rd += [f"![layer {idx}]({path})", ""]
     with open(os.path.join(REPO, "README.md"), "w") as f:
         f.write("\n".join(rd) + "\n")
 
